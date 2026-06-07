@@ -1,0 +1,6 @@
+streamlit
+streamlit-paste-button
+onnxruntime-cpu
+Pillow
+numpy
+requests
