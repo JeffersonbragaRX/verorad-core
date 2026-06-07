@@ -17,10 +17,9 @@ MODEL_PATH = "bone_age_weights.best.hdf5"
 def carregar_ia():
     # 1. Baixar modelo se não existir
     if not os.path.exists(MODEL_PATH):
-        with st.spinner("A baixar pesos da IA..."):
-            response = requests.get(MODEL_URL)
-            with open(MODEL_PATH, "wb") as f:
-                f.write(response.content)
+        response = requests.get(MODEL_URL)
+        with open(MODEL_PATH, "wb") as f:
+            f.write(response.content)
     
     # 2. Montar arquitetura da rede
     in_lay = Input(shape=(384, 384, 3))
