@@ -1,5 +1,6 @@
 streamlit
 streamlit-paste-button
+onnxruntime
 Pillow
 numpy
 requests
