@@ -2,22 +2,25 @@ import streamlit as st
 import numpy as np
 import requests
 import os
-import tensorflow as tf
 from PIL import Image
 from streamlit_paste_button import paste_image_button
+
+# IMPORTANTE: O TensorFlow deve ser instalado via requirements.txt como "tensorflow-cpu"
+# ou "tensorflow" se o servidor permitir. Se o erro persistir, remova o tensorflow 
+# dos requirements e use uma versão leve.
+import tensorflow as tf
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.keras.layers import Input, Conv2D, LocallyConnected2D, Dense, Dropout, GlobalAveragePooling2D, multiply, Lambda, BatchNormalization
 from tensorflow.keras.models import Model
 
 # --- CONFIGURAÇÃO ---
-# Link direto do seu modelo no Google Drive
 MODEL_URL = "https://drive.google.com/uc?export=download&id=1_h3QRlUhrYIaVMFaC6WrT0304ciqaGoL"
 MODEL_PATH = "bone_age_weights.best.hdf5"
 
 def baixar_modelo():
     """Baixa o modelo do Drive se ele não existir no servidor."""
     if not os.path.exists(MODEL_PATH):
-        with st.spinner("VeroRad: Inicializando motor de diagnóstico..."):
+        with st.spinner("VeroRad: A descarregar pesos da IA..."):
             response = requests.get(MODEL_URL)
             with open(MODEL_PATH, "wb") as f:
                 f.write(response.content)
@@ -27,12 +30,11 @@ def carregar_ia():
     """Monta a arquitetura da IA e carrega os pesos."""
     baixar_modelo()
     
-    # Arquitetura do Modelo
     in_lay = Input(shape=(384, 384, 3))
     base_pretrained_model = VGG16(input_shape=(384, 384, 3), include_top=False, weights=None)
     pt_features = base_pretrained_model(in_lay)
     
-    # Atenção e processamento
+    # Camadas de Atenção
     bn_features = BatchNormalization()(pt_features)
     attn_layer = Conv2D(64, kernel_size=(1,1), padding='same', activation='relu')(bn_features)
     attn_layer = Conv2D(16, kernel_size=(1,1), padding='same', activation='relu')(attn_layer)
@@ -61,9 +63,7 @@ st.set_page_config(page_title="VeroRad", page_icon="🦴", layout="centered")
 st.title("🦴 VeroRad")
 st.subheader("Inteligência Artificial para Radiologia")
 
-# Carregamento do modelo
-with st.spinner("Preparando o ambiente VeroRad..."):
-    modelo_ia = carregar_ia()
+modelo_ia = carregar_ia()
 
 # Entrada de imagem
 paste_result = paste_image_button(label="📋 Colar Raio-X", background_color="#0066cc")
@@ -76,10 +76,11 @@ if imagem_analisada:
     st.image(img, use_container_width=True)
     
     if st.button("Analisar Imagem"):
-        img_arr = np.expand_dims(np.array(img.resize((384, 384))), axis=0)
-        idade_meses = float(modelo_ia.predict(preprocess_input(img_arr), verbose=0)[0][0])
-        
-        anos = int(idade_meses // 12)
-        meses = int(idade_meses % 12)
-        
-        st.success(f"Resultado estimado: {anos} anos e {meses} meses.")
+        with st.spinner("A analisar..."):
+            img_arr = np.expand_dims(np.array(img.resize((384, 384))), axis=0)
+            idade_meses = float(modelo_ia.predict(preprocess_input(img_arr), verbose=0)[0][0])
+            
+            anos = int(idade_meses // 12)
+            meses = int(idade_meses % 12)
+            
+            st.success(f"Resultado estimado: {anos} anos e {meses} meses.")
