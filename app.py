@@ -54,16 +54,19 @@ try:
     # Botão de colar ou upload
     paste_result = paste_image_button(label="📋 Colar Raio-X", background_color="#0066cc")
     upload = st.file_uploader("Ou envie o ficheiro:", type=["png", "jpg", "jpeg"])
-    img_data = paste_result.image_data if paste_result.image_data else upload
+    
+    # Prioridade para o botão de colar
+    img_data = paste_result.image_data if (paste_result and paste_result.image_data) else upload
 
     if img_data:
         img = Image.open(img_data).convert('RGB')
         st.image(img, use_container_width=True)
         
         if st.button("Analisar Imagem"):
-            img_arr = np.expand_dims(np.array(img.resize((384, 384))), axis=0)
-            idade = float(modelo_ia.predict(preprocess_input(img_arr), verbose=0)[0][0])
-            st.success(f"Idade óssea: {int(idade//12)} anos e {int(idade%12)} meses.")
+            with st.spinner("Analisando..."):
+                img_arr = np.expand_dims(np.array(img.resize((384, 384))), axis=0)
+                idade = float(modelo_ia.predict(preprocess_input(img_arr), verbose=0)[0][0])
+                st.success(f"Idade óssea: {int(idade//12)} anos e {int(idade%12)} meses.")
             
 except Exception as e:
     st.error(f"Erro ao carregar o modelo: {e}")
