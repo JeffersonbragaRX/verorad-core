@@ -1,6 +1,6 @@
 streamlit
 streamlit-paste-button
-tensorflow
 Pillow
-numpy<2.0.0
+numpy
 requests
+tensorflow
