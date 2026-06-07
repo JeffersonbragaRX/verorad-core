@@ -7,15 +7,15 @@ from PIL import Image
 from streamlit_paste_button import paste_image_button
 
 # --- CONFIGURAÇÃO ---
-# URL com formato de download direto
+# Link direto para download do ficheiro no Google Drive
 MODEL_URL = "https://docs.google.com/uc?export=download&id=1NYeHyK6Rg9v9paePeyraKCC3dKML6qWr"
 MODEL_PATH = "bone_age_model.onnx"
 
 @st.cache_resource
 def carregar_ia():
-    # Verifica se o modelo já existe localmente
+    # Verifica se o modelo existe, caso contrário, faz o download
     if not os.path.exists(MODEL_PATH):
-        with st.spinner("A baixar modelo (primeira vez)..."):
+        with st.spinner("A baixar o modelo (esta operação ocorre apenas na primeira vez)..."):
             response = requests.get(MODEL_URL, stream=True)
             if response.status_code != 200:
                 raise Exception(f"Erro ao baixar modelo: Código {response.status_code}")
@@ -24,10 +24,11 @@ def carregar_ia():
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
     
-    # Validação mínima de segurança para garantir que não é um HTML de erro
+    # Validação do ficheiro
     if os.path.getsize(MODEL_PATH) < 100000:
-        raise Exception("O ficheiro baixado é muito pequeno. Verifique se o link do Drive está público.")
+        raise Exception("O ficheiro baixado é muito pequeno. Verifique se o link do Google Drive está como 'Qualquer pessoa com o link'.")
 
+    # Carrega o modelo ONNX
     return ort.InferenceSession(MODEL_PATH)
 
 st.set_page_config(page_title="VeroRad", page_icon="🦴", layout="centered")
@@ -45,12 +46,11 @@ try:
         st.image(img, use_container_width=True)
         
         if st.button("Analisar Imagem"):
-            with st.spinner("Analisando..."):
-                # Preprocessamento (deve casar com a entrada que definiu no converter.py)
+            with st.spinner("A processar análise..."):
+                # Resize para as dimensões que a sua IA espera (384x384)
                 img_arr = np.array(img.resize((384, 384))).astype(np.float32)
-                img_arr = np.expand_dims(img_arr, axis=0)
+                img_arr = np.expand_dims(img_arr, axis=0) / 255.0
                 
-                # Inferência
                 input_name = session.get_inputs()[0].name
                 resultado = session.run(None, {input_name: img_arr})
                 
