@@ -1,0 +1,8 @@
+streamlit
+streamlit-paste-button
+Pillow
+requests
+numpy<2.0.0
+tensorflow-cpu
+
+**Nota:** Se o erro de instalação continuar a ocorrer no Streamlit Cloud devido à limitação de memória ou versão do Python, tente trocar `tensorflow-cpu` por `tensorflow-cpu==2.16.1`. Se ainda falhar, o servidor do Streamlit pode estar a ter dificuldades com o tamanho do TensorFlow e talvez precise de usar uma API externa para processar a imagem (ex: Google Cloud Functions ou AWS Lambda) em vez de processar diretamente no Streamlit.
